@@ -2,10 +2,13 @@ package kr.elara.android.framework.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 
-public class AbstractContentProvider extends ContentProvider {
+public abstract class AbstractContentProvider extends ContentProvider {
+
+    private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     @Override
     public boolean onCreate() {
@@ -36,4 +39,8 @@ public class AbstractContentProvider extends ContentProvider {
     public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
         return 0;
     }
+
+    protected abstract Property getProperty();
+
+    protected abstract EntityHolder getEntityHolder();
 }
