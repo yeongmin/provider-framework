@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="provider-framework:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/provider_framework_jar</output-path>
+    <root id="archive" name="ProviderFramework.jar">
+      <element id="module-output" name="ProviderFramework" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/ormlite-core-4.45.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/ormlite-jdbc-4.45.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
