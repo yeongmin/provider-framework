@@ -1,12 +1,15 @@
 package kr.elara.android.framework.provider;
 
+/**
+ * Properties which are used for representing database.
+ */
 public class Property {
 
     private final String mAuthority;
     private final String mDatabaseName;
     private final String mDatabaseVersion;
 
-    public Property(Builder builder) {
+    private Property(Builder builder) {
         mAuthority = builder.mAuthority;
         mDatabaseName = builder.mDatabaseName;
         mDatabaseVersion = builder.mDatabaseVersion;
@@ -32,15 +35,20 @@ public class Property {
 
 
         public Builder(String authority) {
+            if (authority == null || (authority != null && authority.isEmpty())) {
+                throw new IllegalArgumentException("Authority cannot be null or empty.");
+            }
             mAuthority = authority;
         }
 
-        public void setDatabaseName(String name) {
+        public Builder setDatabaseName(String name) {
             mDatabaseName = name;
+            return this;
         }
 
-        public void setDatabaseVersion(String version) {
+        public Builder setDatabaseVersion(String version) {
             mDatabaseVersion = version;
+            return this;
         }
 
         public Property build() {

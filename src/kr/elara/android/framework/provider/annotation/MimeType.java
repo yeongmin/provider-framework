@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface UriPath {
+@Target(ElementType.TYPE)
+public @interface MimeType {
 
-    String[] value() default {};
+    String value() default "";
 
 }
