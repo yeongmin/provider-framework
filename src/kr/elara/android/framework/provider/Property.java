@@ -27,7 +27,7 @@ public class Property {
     public static class Builder {
 
         private final String mAuthority;
-        private String mDatabaseName = "main.db";
+        private String mDatabaseName = "default.db";
         private String mDatabaseVersion = "1";
 
 
