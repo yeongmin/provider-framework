@@ -11,19 +11,13 @@ public class EntityHolderImpl implements EntityHolder {
     @Override
     public List<Class<? extends Entity>> getEntities() {
 
-        ArrayList<Class<? extends Entity>> classes = new ArrayList<Class<? extends Entity>>(2);
-
-        classes.add(Item.class);
-        classes.add(Dummy.class);
+        ArrayList<Class<? extends Entity>> classes = new ArrayList<Class<? extends Entity>>(2) {
+            {
+                add(Coffee.class);
+                add(Juice.class);
+            }
+        };
 
         return classes;
-    }
-
-    public class Item implements Entity {
-
-    }
-
-    public class Dummy implements Entity {
-
     }
 }
