@@ -16,9 +16,13 @@ public abstract class AbstractContentProvider extends ContentProvider {
     private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     private Map<String, String> mProjectionMap = Collections.emptyMap();
     private Map<Integer, Class<? extends Entity>> mCodeEntitiesMap = Collections.emptyMap();
+    private DatabaseHelper mDatabaseHelper;
 
     @Override
     public boolean onCreate() {
+        mDatabaseHelper = new DatabaseHelper(getContext(), getProperty().getDatabaseName(),
+                getProperty().getDatabaseVersion(),
+                getEntityHolder().getEntities(), getProperty().getDatabaseUpdateStrategy());
         initUriMatcher();
         return false;
     }

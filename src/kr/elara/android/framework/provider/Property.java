@@ -7,12 +7,14 @@ public class Property {
 
     private final String mAuthority;
     private final String mDatabaseName;
-    private final String mDatabaseVersion;
+    private final int mDatabaseVersion;
+    private final DatabaseUpdateStrategy mUpdateStrategy;
 
     private Property(Builder builder) {
         mAuthority = builder.mAuthority;
         mDatabaseName = builder.mDatabaseName;
         mDatabaseVersion = builder.mDatabaseVersion;
+        mUpdateStrategy = builder.mUpdateStrategy;
     }
 
     public String getAuthority() {
@@ -23,15 +25,20 @@ public class Property {
         return mDatabaseName;
     }
 
-    public String getDatabaseVersion() {
+    public int getDatabaseVersion() {
         return mDatabaseVersion;
+    }
+
+    public DatabaseUpdateStrategy getDatabaseUpdateStrategy() {
+        return mUpdateStrategy;
     }
 
     public static class Builder {
 
         private final String mAuthority;
         private String mDatabaseName = "default.db";
-        private String mDatabaseVersion = "1";
+        private int mDatabaseVersion = 1;
+        private DatabaseUpdateStrategy mUpdateStrategy;
 
 
         public Builder(String authority) {
@@ -46,8 +53,13 @@ public class Property {
             return this;
         }
 
-        public Builder setDatabaseVersion(String version) {
+        public Builder setDatabaseVersion(int version) {
             mDatabaseVersion = version;
+            return this;
+        }
+
+        public Builder setUpdateStrategy(DatabaseUpdateStrategy updateStrategy) {
+            mUpdateStrategy = updateStrategy;
             return this;
         }
 
