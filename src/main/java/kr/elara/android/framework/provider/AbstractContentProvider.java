@@ -2,10 +2,13 @@ package kr.elara.android.framework.provider;
 
 import android.content.*;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import com.j256.ormlite.table.DatabaseTable;
 import kr.elara.android.framework.provider.annotation.MimeType;
 import kr.elara.android.framework.provider.annotation.UriPath;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +99,26 @@ public abstract class AbstractContentProvider extends ContentProvider {
         return (mUriMatcher.match(uri) != -1);
     }
 
+    private String getTable(Uri uri) {
+
+        //TODO : extract this with getMimeType
+        Class<? extends Entity> entity = mCodeEntitiesMap.get(mUriMatcher.match(uri));
+        DatabaseTable table = entity.getAnnotation(DatabaseTable.class);
+
+        String result = "";
+        if (table != null) {
+            result = table.tableName();
+        }
+
+        return result;
+    }
+
+    private void checkUri(Uri uri) {
+        if (mUriMatcher.match(uri) == -1) {
+            throw new IllegalArgumentException("Unknown Uri : " + uri);
+        }
+    }
+
     @Override
     public Cursor query(Uri uri, String[] strings, String s, String[] strings2, String s2) {
         return null;
@@ -103,7 +126,31 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+
+        checkUri(uri);
+        ContentValues values = (contentValues != null) ? new ContentValues(contentValues) : new ContentValues();
+
+        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+
+        long rowId = db.insert(getTable(uri), null, values);
+
+        if (rowId > 0) {
+            Uri uriBase = getUri(uri);
+            Uri uriResult = ContentUris.withAppendedId(uriBase, rowId);
+            getContext().getContentResolver().notifyChange(uriResult, null);
+            return uriResult;
+        } else {
+            // TODO : throw SQLException
+            throw new IllegalStateException("Insert fail" + uri);
+        }
+    }
+
+    private Uri getUri(Uri uri) {
+        //TODO : check this is right or not.
+        String baseUri = uri.getLastPathSegment();
+        String uriString = ContentResolver.SCHEME_CONTENT + "://" + getProperty().getAuthority() + "/" +
+                baseUri + "/";
+        return Uri.parse(uriString);
     }
 
     @Override
