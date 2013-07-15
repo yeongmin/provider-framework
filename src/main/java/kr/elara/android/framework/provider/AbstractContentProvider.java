@@ -3,18 +3,21 @@ package kr.elara.android.framework.provider;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import com.j256.ormlite.table.DatabaseTable;
 import kr.elara.android.framework.provider.annotation.MimeType;
 import kr.elara.android.framework.provider.annotation.UriPath;
+import kr.elara.android.framework.provider.util.Log;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractContentProvider extends ContentProvider {
+
+    private static final String LOG_TAG = AbstractContentProvider.class.getSimpleName();
 
     private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     private Map<String, String> mProjectionMap = Collections.emptyMap();
@@ -38,7 +41,10 @@ public abstract class AbstractContentProvider extends ContentProvider {
         mCodeEntitiesMap = new HashMap<Integer, Class<? extends Entity>>((int) (entities.size() / 0.75 + 1));
 
         for (Class<? extends Entity> entity : entities) {
+            Log.d(LOG_TAG, entity.getSimpleName() + " : ");
             for (String uriPath : getAllUriPaths(entity)) {
+                Log.d(LOG_TAG, "add to uri matcher - authority : " + authority + ", uriPath : " + uriPath + ", " +
+                        "code : " + code);
                 mUriMatcher.addURI(authority, uriPath, code);
                 mCodeEntitiesMap.put(code, entity);
                 code++;
@@ -120,8 +126,22 @@ public abstract class AbstractContentProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] strings, String s, String[] strings2, String s2) {
-        return null;
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        Log.d(LOG_TAG, "query() - uri : " + uri + "\ntable : " + getTable(uri));
+
+        checkUri(uri);
+        SQLiteQueryBuilder qBuilder = new SQLiteQueryBuilder();
+        qBuilder.setTables(getTable(uri));
+
+        // TODO : for multiple items in else {}
+        if (isSingleRow(uri)) {
+            qBuilder.appendWhere(Entity._ID + "=" + uri.getLastPathSegment());
+        }
+
+        SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
+        Cursor cursor = qBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     @Override
