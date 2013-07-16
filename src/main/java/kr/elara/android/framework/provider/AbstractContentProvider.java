@@ -38,7 +38,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
         int code = 1;
         List<Class<? extends Entity>> entities = getEntityHolder().getEntities();
 
-        mCodeEntitiesMap = new HashMap<Integer, Class<? extends Entity>>((int) (entities.size() / 0.75 + 1));
+        mCodeEntitiesMap = new HashMap<Integer, Class<? extends Entity>>();
 
         for (Class<? extends Entity> entity : entities) {
             Log.d(LOG_TAG, entity.getSimpleName() + " : ");
