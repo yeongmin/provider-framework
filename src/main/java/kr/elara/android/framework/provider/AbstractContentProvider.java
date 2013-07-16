@@ -3,13 +3,20 @@ package kr.elara.android.framework.provider;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.text.TextUtils;
+import com.j256.ormlite.android.DatabaseTableConfigUtil;
+import com.j256.ormlite.field.DatabaseFieldConfig;
 import com.j256.ormlite.table.DatabaseTable;
+import com.j256.ormlite.table.DatabaseTableConfig;
+import kr.elara.android.framework.provider.annotation.DefaultSortOrder;
 import kr.elara.android.framework.provider.annotation.MimeType;
 import kr.elara.android.framework.provider.annotation.UriPath;
 import kr.elara.android.framework.provider.util.Log;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +27,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
     private static final String LOG_TAG = AbstractContentProvider.class.getSimpleName();
 
     private final UriMatcher mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-    private Map<String, String> mProjectionMap = Collections.emptyMap();
-    private Map<Integer, Class<? extends Entity>> mCodeEntitiesMap = Collections.emptyMap();
+    private Map<Integer, Class<? extends Entity>> mCodeEntitiesMap = new HashMap<Integer, Class<? extends Entity>>();
+    private Map<Class<? extends Entity>, Map<String, String>> mEntityProjectionMap;
     private DatabaseHelper mDatabaseHelper;
 
     @Override
@@ -30,6 +37,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
                 getProperty().getDatabaseVersion(),
                 getEntityHolder().getEntities(), getProperty().getDatabaseUpdateStrategy());
         initUriMatcher();
+        initProjectionMap();
         return false;
     }
 
@@ -37,8 +45,6 @@ public abstract class AbstractContentProvider extends ContentProvider {
         String authority = getProperty().getAuthority();
         int code = 1;
         List<Class<? extends Entity>> entities = getEntityHolder().getEntities();
-
-        mCodeEntitiesMap = new HashMap<Integer, Class<? extends Entity>>();
 
         for (Class<? extends Entity> entity : entities) {
             Log.d(LOG_TAG, entity.getSimpleName() + " : ");
@@ -50,6 +56,42 @@ public abstract class AbstractContentProvider extends ContentProvider {
                 code++;
             }
         }
+    }
+
+    private void initProjectionMap() {
+        List<Class<? extends Entity>> entities = getEntityHolder().getEntities();
+        mEntityProjectionMap = new HashMap<Class<? extends Entity>, Map<String, String>>(
+                (int) (entities.size() / 0.75 + 1));
+
+        for (Class<? extends Entity> entity : entities) {
+            Log.d(LOG_TAG, "create ProjectionMap for " + entity.getSimpleName());
+            mEntityProjectionMap.put(entity, getProjectionMap(entity));
+        }
+    }
+
+    private Map<String, String> getProjectionMap(Class<? extends Entity> entity) {
+
+        // To get DatabaseField from entity, first obtain DatabaseTableConfig.
+        DatabaseTableConfig<? extends Entity> tableConfig;
+        try {
+            tableConfig = DatabaseTableConfigUtil.fromClass
+                    (mDatabaseHelper.getConnectionSource(), entity);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Log.d(LOG_TAG, "Cannot get projectionMap from " + entity.getSimpleName());
+            return Collections.emptyMap();
+        }
+
+        List<DatabaseFieldConfig> fieldConfigs = tableConfig.getFieldConfigs();
+        HashMap<String, String> projectionMap = new HashMap<String, String>((int) (fieldConfigs.size() / 0.75 +
+                1));
+
+        for (DatabaseFieldConfig fieldConfig : fieldConfigs) {
+            projectionMap.put(fieldConfig.getColumnName(), fieldConfig.getColumnName());
+            Log.d(LOG_TAG, "put column : " + fieldConfig.getColumnName() + " into projectionMap");
+        }
+
+        return projectionMap;
     }
 
     private String[] getAllUriPaths(Class<? extends Entity> entity) {
@@ -76,14 +118,17 @@ public abstract class AbstractContentProvider extends ContentProvider {
     private String getMimeType(Uri uri) {
         String result = "";
 
-        Class<? extends Entity> entity = mCodeEntitiesMap.get(mUriMatcher.match(uri));
-        MimeType mimeType = entity.getAnnotation(MimeType.class);
+        MimeType mimeType = getEntity(uri).getAnnotation(MimeType.class);
 
         if (mimeType != null) {
             result = mimeType.value();
         }
 
         return result;
+    }
+
+    private Class<? extends Entity> getEntity(Uri uri) {
+        return mCodeEntitiesMap.get(mUriMatcher.match(uri));
     }
 
     private boolean isSingleRow(Uri uri) {
@@ -106,10 +151,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
     }
 
     private String getTable(Uri uri) {
-
-        //TODO : extract this with getMimeType
-        Class<? extends Entity> entity = mCodeEntitiesMap.get(mUriMatcher.match(uri));
-        DatabaseTable table = entity.getAnnotation(DatabaseTable.class);
+        DatabaseTable table = getEntity(uri).getAnnotation(DatabaseTable.class);
 
         String result = "";
         if (table != null) {
@@ -133,15 +175,34 @@ public abstract class AbstractContentProvider extends ContentProvider {
         SQLiteQueryBuilder qBuilder = new SQLiteQueryBuilder();
         qBuilder.setTables(getTable(uri));
 
-        // TODO : for multiple items in else {}
         if (isSingleRow(uri)) {
             qBuilder.appendWhere(Entity._ID + "=" + uri.getLastPathSegment());
         }
 
+        qBuilder.setProjectionMap(mEntityProjectionMap.get(getEntity(uri)));
+
+        String orderBy;
+        if (TextUtils.isEmpty(sortOrder)) {
+            orderBy = getDefaultSortOrder(uri);
+        } else {
+            orderBy = sortOrder;
+        }
+
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
-        Cursor cursor = qBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor = qBuilder.query(db, projection, selection, selectionArgs, null, null, orderBy);
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return cursor;
+    }
+
+    private String getDefaultSortOrder(Uri uri) {
+        DefaultSortOrder sortOrder = getEntity(uri).getAnnotation(DefaultSortOrder.class);
+
+        String result = "";
+        if (sortOrder != null) {
+            result = sortOrder.value();
+        }
+        return result;
     }
 
     @Override
@@ -160,13 +221,12 @@ public abstract class AbstractContentProvider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uriResult, null);
             return uriResult;
         } else {
-            // TODO : throw SQLException
-            throw new IllegalStateException("Insert fail" + uri);
+            throw new SQLiteException();
+
         }
     }
 
     private Uri getUri(Uri uri) {
-        //TODO : check this is right or not.
         String baseUri = uri.getLastPathSegment();
         String uriString = ContentResolver.SCHEME_CONTENT + "://" + getProperty().getAuthority() + "/" +
                 baseUri + "/";
