@@ -88,7 +88,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
         for (DatabaseFieldConfig fieldConfig : fieldConfigs) {
             projectionMap.put(fieldConfig.getColumnName(), fieldConfig.getColumnName());
-            Log.d(LOG_TAG, "put column : " + fieldConfig.getColumnName() + " into projectionMap");
+            Log.d(LOG_TAG, "put column : \"" + fieldConfig.getColumnName() + "\" into projectionMap");
         }
 
         return projectionMap;
@@ -169,7 +169,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.d(LOG_TAG, "query() - uri : " + uri + "\ntable : " + getTable(uri));
+        Log.d(LOG_TAG, "query - uri : " + uri);
 
         checkUri(uri);
         SQLiteQueryBuilder qBuilder = new SQLiteQueryBuilder();
@@ -207,6 +207,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
+        Log.d(LOG_TAG, "insert : uri - " + uri);
 
         checkUri(uri);
         ContentValues values = (contentValues != null) ? new ContentValues(contentValues) : new ContentValues();
