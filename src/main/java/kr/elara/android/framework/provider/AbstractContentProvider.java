@@ -226,8 +226,41 @@ public abstract class AbstractContentProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String s, String[] strings) {
-        return 0;
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        Log.d(LOG_TAG, "delete : uri - " + uri);
+
+        checkUri(uri);
+        String reSelection = selection;
+        if (isSingleRow(uri)) {
+            reSelection = Entity._ID + " = " + uri.getLastPathSegment();
+            if (!TextUtils.isEmpty(selection)) {
+                reSelection = reSelection + " AND " + selection;
+            }
+        }
+
+        deleteLog(getTable(uri), selection, selectionArgs);
+
+        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+        int count = db.delete(getTable(uri), reSelection, selectionArgs);
+
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return count;
+    }
+
+    private static void deleteLog(String table, String selection, String[] selectionArgs) {
+        if (Log.enabled) {
+            // For Logging, build string for value of where clause.
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("{ ");
+            for (String value : selectionArgs) {
+                stringBuilder.append(value);
+                stringBuilder.append(", ");
+            }
+            stringBuilder.append("}");
+            Log.d(LOG_TAG, "DELETE FROM " + table + " WHERE " + selection.replace("?",
+                    "") + stringBuilder.toString());
+        }
     }
 
     @Override
