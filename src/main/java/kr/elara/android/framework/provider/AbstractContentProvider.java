@@ -216,21 +216,13 @@ public abstract class AbstractContentProvider extends ContentProvider {
         long rowId = db.insert(getTable(uri), null, values);
 
         if (rowId > 0) {
-            Uri uriBase = getUri(uri);
-            Uri uriResult = ContentUris.withAppendedId(uriBase, rowId);
+            Uri uriResult = ContentUris.withAppendedId(uri, rowId);
             getContext().getContentResolver().notifyChange(uriResult, null);
             return uriResult;
         } else {
             throw new SQLiteException();
 
         }
-    }
-
-    private Uri getUri(Uri uri) {
-        String baseUri = uri.getLastPathSegment();
-        String uriString = ContentResolver.SCHEME_CONTENT + "://" + getProperty().getAuthority() + "/" +
-                baseUri + "/";
-        return Uri.parse(uriString);
     }
 
     @Override
