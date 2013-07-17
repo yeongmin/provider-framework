@@ -190,6 +190,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
         SQLiteDatabase db = mDatabaseHelper.getReadableDatabase();
         Cursor cursor = qBuilder.query(db, projection, selection, selectionArgs, null, null, orderBy);
+
+        queryLog(getTable(uri), projection, selection, selectionArgs, orderBy);
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
 
         return cursor;
@@ -239,11 +241,10 @@ public abstract class AbstractContentProvider extends ContentProvider {
             }
         }
 
-        deleteLog(getTable(uri), selection, selectionArgs);
-
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
         int count = db.delete(getTable(uri), reSelection, selectionArgs);
 
+        deleteLog(getTable(uri), selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
 
         return count;
@@ -251,17 +252,36 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
     private static void deleteLog(String table, String selection, String[] selectionArgs) {
         if (Log.enabled) {
-            // For Logging, build string for value of where clause.
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("{ ");
-            for (String value : selectionArgs) {
-                stringBuilder.append(value);
-                stringBuilder.append(", ");
-            }
-            stringBuilder.append("}");
-            Log.d(LOG_TAG, "DELETE FROM " + table + " WHERE " + selection.replace("?",
-                    "") + stringBuilder.toString());
+            Log.d(LOG_TAG, "DELETE FROM " + table + buildWhere(selection, selectionArgs));
         }
+    }
+
+    private static void queryLog(String table, String[] projection, String selection, String[] selectionArgs,
+                                 String orderBy) {
+        if (Log.enabled) {
+            Log.d(LOG_TAG, "SELELCT " + serializeArgs(projection) + " FROM " + table + buildWhere(selection,
+                    selectionArgs) + " ORDER BY " + orderBy);
+        }
+    }
+
+    private static String buildWhere(String selection, String[] selectionArgs) {
+        String where = "";
+        if (!TextUtils.isEmpty(selection)) {
+            where = " WHERE " + selection.replace("?", "") + serializeArgs(selectionArgs);
+        }
+        return where;
+    }
+
+    private static String serializeArgs(String[] selectionArgs) {
+        // For Logging, build string for value of where clause.
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("{ ");
+        for (String value : selectionArgs) {
+            stringBuilder.append(value);
+            stringBuilder.append(", ");
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
     }
 
     @Override
