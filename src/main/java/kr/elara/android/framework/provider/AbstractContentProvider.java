@@ -107,9 +107,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        if (!isValidUri(uri)) {
-            throw new IllegalArgumentException("Unknown Uri : " + uri);
-        }
+        validateUri(uri);
+
         String type = isSingleRow(uri) ? ContentResolver.CURSOR_DIR_BASE_TYPE : ContentResolver.CURSOR_ITEM_BASE_TYPE;
 
         return type + "/" + getMimeType(uri);
@@ -146,10 +145,6 @@ public abstract class AbstractContentProvider extends ContentProvider {
         return true;
     }
 
-    private boolean isValidUri(Uri uri) {
-        return (mUriMatcher.match(uri) != -1);
-    }
-
     private String getTable(Uri uri) {
         DatabaseTable table = getEntity(uri).getAnnotation(DatabaseTable.class);
 
@@ -161,7 +156,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
         return result;
     }
 
-    private void checkUri(Uri uri) {
+    private void validateUri(Uri uri) {
         if (mUriMatcher.match(uri) == -1) {
             throw new IllegalArgumentException("Unknown Uri : " + uri);
         }
@@ -170,8 +165,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Log.d(LOG_TAG, "query - uri : " + uri);
+        validateUri(uri);
 
-        checkUri(uri);
         SQLiteQueryBuilder qBuilder = new SQLiteQueryBuilder();
         qBuilder.setTables(getTable(uri));
 
@@ -210,8 +205,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
         Log.d(LOG_TAG, "insert : uri - " + uri);
+        validateUri(uri);
 
-        checkUri(uri);
         ContentValues values = (contentValues != null) ? new ContentValues(contentValues) : new ContentValues();
 
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
@@ -231,8 +226,8 @@ public abstract class AbstractContentProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         Log.d(LOG_TAG, "delete : uri - " + uri);
+        validateUri(uri);
 
-        checkUri(uri);
         String reSelection = selection;
         if (isSingleRow(uri)) {
             reSelection = Entity._ID + " = " + uri.getLastPathSegment();
