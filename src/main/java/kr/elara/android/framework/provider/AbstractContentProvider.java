@@ -94,7 +94,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
         return projectionMap;
     }
 
-    private String[] getAllUriPaths(Class<? extends Entity> entity) {
+    private static String[] getAllUriPaths(Class<? extends Entity> entity) {
         String[] result = new String[0];
         UriPath uriPath = entity.getAnnotation(UriPath.class);
 
@@ -130,7 +130,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
         return mCodeEntitiesMap.get(mUriMatcher.match(uri));
     }
 
-    private boolean isSingleRow(Uri uri) {
+    private static boolean isSingleRow(Uri uri) {
         long lastSegmentValue;
         try {
             lastSegmentValue = ContentUris.parseId(uri);
