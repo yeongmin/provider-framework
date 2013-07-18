@@ -215,11 +215,11 @@ public abstract class AbstractContentProvider extends ContentProvider {
 
         if (rowId > 0) {
             Uri uriResult = ContentUris.withAppendedId(uri, rowId);
+            // TODO : Log SQL statement.
             getContext().getContentResolver().notifyChange(uriResult, null);
             return uriResult;
         } else {
             throw new SQLiteException();
-
         }
     }
 
@@ -228,15 +228,9 @@ public abstract class AbstractContentProvider extends ContentProvider {
         Log.d(LOG_TAG, "delete : uri - " + uri);
         validateUri(uri);
 
-        String reSelection = selection;
-        if (isSingleRow(uri)) {
-            reSelection = Entity._ID + " = " + uri.getLastPathSegment();
-            if (!TextUtils.isEmpty(selection)) {
-                reSelection = reSelection + " AND " + selection;
-            }
-        }
-
+        String reSelection = rewriteSelection(uri, selection);
         SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+
         int count = db.delete(getTable(uri), reSelection, selectionArgs);
 
         Log.deleteLog(LOG_TAG, getTable(uri), selection, selectionArgs);
@@ -246,8 +240,30 @@ public abstract class AbstractContentProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        Log.d(LOG_TAG, "update : uri - " + uri);
+        validateUri(uri);
+
+        String reSelection = rewriteSelection(uri, selection);
+        SQLiteDatabase db = mDatabaseHelper.getWritableDatabase();
+
+        int count = db.update(getTable(uri), contentValues, reSelection, selectionArgs);
+
+        // TODO : Log SQL statement.
+        getContext().getContentResolver().notifyChange(uri, null);
+        return count;
+    }
+
+    private static String rewriteSelection(Uri uri, String selection) {
+        String result = selection;
+
+        if (isSingleRow(uri)) {
+            result = Entity._ID + " = " + uri.getLastPathSegment();
+            if (!TextUtils.isEmpty(selection)) {
+                result = result + " AND " + selection;
+            }
+        }
+        return result;
     }
 
     protected abstract Property getProperty();
