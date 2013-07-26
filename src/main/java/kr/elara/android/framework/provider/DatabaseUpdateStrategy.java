@@ -5,6 +5,6 @@ import com.j256.ormlite.support.ConnectionSource;
 
 public interface DatabaseUpdateStrategy {
 
-    public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion);
+    void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion);
 
 }
