@@ -19,5 +19,7 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 16
+        testPackageName "kr.elara.android.framework.provider"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
 }
