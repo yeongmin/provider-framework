@@ -61,6 +61,46 @@ public class AbstractContentProviderTest extends ProviderTestCase2<MockContentPr
         assertEquals(STUB_ITEM_NUMBER, count);
     }
 
+    public void testDeleteSingleItem() {
+
+        int delete = getMockContentResolver().delete(mUri, Item.NUMBER + " =?", new String[]{"3"});
+        assertEquals(1, delete);
+
+        Cursor cursor = getMockContentResolver().query(mUri, new String[]{Item.NUMBER}, Item.NUMBER + " = ?",
+                new String[]{"3"}, null);
+        assertEquals(0, cursor.getCount());
+    }
+
+    public void testDeleteMultipleItems() {
+        int delete = getMockContentResolver().delete(mUri, null, null);
+        assertEquals(STUB_ITEM_NUMBER, delete);
+    }
+
+    public void testUpdateSingleItem() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Item.TITLE, "update");
+
+        int update = getMockContentResolver().update(mUri, contentValues, Item.NUMBER + " =?", new String[]{"3"});
+        assertEquals(1, update);
+
+        Cursor cursor = getMockContentResolver().query(mUri, new String[]{Item.TITLE}, Item.NUMBER + " = ?",
+                new String[]{"3"}, null);
+        cursor.moveToFirst();
+        assertEquals("update", cursor.getString(0));
+    }
+
+    public void testUpdateMultipleItems() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Item.TITLE, "update");
+
+        int update = getMockContentResolver().update(mUri, contentValues, null, null);
+        assertEquals(10, update);
+
+        Cursor cursor = getMockContentResolver().query(mUri, new String[]{Item.TITLE}, null, null, null);
+        while(cursor.moveToNext()) {
+            assertEquals("update", cursor.getString(0));
+        }
+    }
 
     private int insertStubItems() {
         ContentValues[] values = new ContentValues[STUB_ITEM_NUMBER];
