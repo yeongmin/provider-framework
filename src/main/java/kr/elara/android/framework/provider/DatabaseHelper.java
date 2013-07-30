@@ -10,6 +10,12 @@ import kr.elara.android.framework.provider.util.Log;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * A Helper class to manage database creation and version management.
+ * <p/>
+ * This class creates tables of database based on {@link Entity} from {@link EntityHolder} and delegates updating
+ * database to {@link DatabaseUpdateStrategy}
+ */
 class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     private static final String LOG_TAG = DatabaseHelper.class.getSimpleName();
