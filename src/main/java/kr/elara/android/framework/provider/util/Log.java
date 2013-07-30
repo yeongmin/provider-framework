@@ -2,6 +2,9 @@ package kr.elara.android.framework.provider.util;
 
 import android.text.TextUtils;
 
+/**
+ * A Helper class for logging. By setting false to {@link Log#enabled}, Log can be disabled.
+ */
 public final class Log {
 
     public static boolean enabled = true;
@@ -19,7 +22,7 @@ public final class Log {
     public static void queryLog(String tag, String table, String[] projection, String selection, String[] selectionArgs,
                                 String orderBy) {
         if (enabled) {
-            android.util.Log.d(tag, "SELELCT " + serializeArgs(projection) + " FROM " + table + buildWhere(selection,
+            android.util.Log.d(tag, "SELECT " + serializeArgs(projection) + " FROM " + table + buildWhere(selection,
                     selectionArgs) + " ORDER BY " + orderBy);
         }
     }
