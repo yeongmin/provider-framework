@@ -1,25 +1,19 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.4'
+        classpath 'com.android.tools.build:gradle:0.12.+'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
-apply plugin: 'android-library'
 
-dependencies {
-    compile files('libs/ormlite-android-4.45.jar', 'libs/ormlite-core-4.45.jar')
-}
-
-android {
-    compileSdkVersion 17
-    buildToolsVersion "17.0.0"
-
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 16
-        testPackageName "kr.elara.android.framework.provider"
-        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+allprojects {
+    repositories {
+        jcenter()
     }
 }

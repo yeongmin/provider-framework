@@ -55,7 +55,7 @@ public class AbstractContentProviderTest extends ProviderTestCase2<MockContentPr
     }
 
     public void testQueryAll() {
-        Cursor cursor = getMockContentResolver().query(mUri, new String[]{Item.TITLE}, null, null, null, null);
+        Cursor cursor = getMockContentResolver().query(mUri, new String[]{Item.TITLE}, null, null, null);
         int count = cursor.getCount();
 
         assertEquals(STUB_ITEM_NUMBER, count);
