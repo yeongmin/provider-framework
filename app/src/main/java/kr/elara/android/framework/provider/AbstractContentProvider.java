@@ -109,7 +109,7 @@ public abstract class AbstractContentProvider extends ContentProvider {
     public String getType(Uri uri) {
         validateUri(uri);
 
-        String type = isSingleRow(uri) ? ContentResolver.CURSOR_DIR_BASE_TYPE : ContentResolver.CURSOR_ITEM_BASE_TYPE;
+        String type = isSingleRow(uri) ? ContentResolver.CURSOR_ITEM_BASE_TYPE : ContentResolver.CURSOR_DIR_BASE_TYPE;
 
         return type + "/" + getMimeType(uri);
     }
