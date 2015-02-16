@@ -1,21 +1,24 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 15
-    buildToolsVersion "20.0.0"
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "kr.elara.android.framework.provider"
-        minSdkVersion 15
-        targetSdkVersion 15
+        minSdkVersion 18
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
-        testApplicationId "kr.elara.android.framework.provider.test"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
+
+//    defaultConfig {
+//        testApplicationId "kr.elara.android.framework.provider.test"
+//        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+//    }
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
